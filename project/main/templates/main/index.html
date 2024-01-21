@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load carts_tags %}
+
+{% block content %}
+
+<script>
+    $(document).ready(function() {
+        // Обработчик события изменения значения в input
+        $('.add_to').on('click', function() {
+            // Получаем значение из input
+            var id = $(this).attr('data-catr-id');
+            var el = $(this)
+            var parent = $(this).parent()
+
+            $.ajax({
+                type: 'POST',
+                url: '{% url "basket:add_product_to_basket" %}', 
+                data: {'id':id, 'csrfmiddlewaretoken': '{{ csrf_token }}'},
+                success: function(response) {
+                    console.log('Успешно отправлено:', response);
+                    el.remove()
+                    parent.append('<a class="bg-green-100 hover:bg-green-200" href="{% url "user:profile" %}">Уже в корзине</a>')
+                },
+                error: function(error) {
+                    console.error('Ошибка при отправке:', error);
+                }
+            });
+        });
+    });
+</script>
+
+<div class='flex justify-center text-center align-middle min-h-full'>
+    <div class='m-2 bg-slate-100 rounded-lg p-2 px-8 w-auto h-auto my-32 min-w-[50vw] max-w-[50vw] flex flex-wrap gap-4 shadow-lg'>
+
+        {% for product in goods %}
+        <div id="product_{{product.id}}" class="w-96 h-32 bg-white shadow-md text-center rounded-md m-4 mx-auto flex flex-col">
+            <p>{{product.name}}</p>
+            <p>{{product.description|truncatechars:64 }}</p>
+            <div class="flex justify-between [&>*]:mx-2 [&>*]:rounded-md [&>*]:mt-auto [&>*]:my-1 [&>*]:p-2 [&>*]:px-4 h-full w-full">
+                <p class="bg-slate-100">{{product.price}}Р</p>
+                {% if user.is_authenticated %}
+                    {% product_in_basket request=request product=product as product_in %}
+                    {% if not product_in %}
+                        <a data-catr-id={{product.id}} class="add_to bg-green-100 hover:bg-green-200 hover:cursor-pointer">Купить</a>
+                    {% else %}
+                        <a class="bg-green-100 hover:bg-green-200" href='{% url "user:profile" %}'>Уже в корзине</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+</div>
+
+{% endblock  %}

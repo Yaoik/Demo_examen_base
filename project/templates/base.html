@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>{% if title %}{{ title }} {% else %} Тут ничего нет {% endif %}</title>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js'></script>
+
+</head>
+<body>
+    <header class='w-full h-16 bg-slate-400 justify-between flex [&>div]:bg-blue-500 hover:[&>div]:bg-blue-600 [&>div]:h-16 [&>div]:px-2 [&>div]:min-w-32 [&>div]:w-auto [&>div>a]:flex [&>div>a]:items-center [&>div>a]:justify-center'>
+        <div>
+            <a href="{% url "main:index" %}" class="text-center w-full h-full">Главная</a>
+        </div>
+        {% if user.is_anonymous %}
+        <div>
+            <a href="{% url "user:login" %}" class="text-center w-full h-full">Войти в аккаунт</a>
+        </div>
+        {% else %}
+        <div>
+            <a href="{% url "user:profile" %}" class="text-center w-full h-full">Профиль</a>
+        </div>
+        {% endif %}
+        {% if user.is_anonymous %}
+        <div>
+            <a href="{% url "user:register" %}" class="text-center w-full h-full">Зарегестрироваться</a>
+        </div>
+        {% endif %}
+        {% if user.is_superuser %}
+        <div>
+            <a href="{% url "admin:index" %}" class="text-center w-full h-full">Админка</a>
+        </div>
+        {% endif %}
+        {% if user.is_authenticated %}
+        <div>
+            <a href="{% url "user:logout" %}" class="text-center w-full h-full">Выйти из аккаунта</a>
+        </div>
+        {% endif %}
+    </header>
+    {% block content %}
+    {% endblock content %}
+</body>
+</html>

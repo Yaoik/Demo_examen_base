@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% load static %}
+
+<div class='flex justify-center text-center align-middle min-h-full'>
+    <div class='m-2 bg-slate-100 rounded-b-lg p-2 w-64 h-auto my-0 min-w-96'>
+        <p>Email - {{user.email}}</p>
+        <p>ФИО - {{user.fio}}</p>
+        {% if user.is_superuser %}
+        <p>Ты Админ</p>
+        {% endif %}
+        {% if not user.is_superuser %}
+        <p>Ты Клиент</p>
+        {% endif %}
+    </div>
+</div>
+{% include "basket.html" %}
+{% endblock  %}

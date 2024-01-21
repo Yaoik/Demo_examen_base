@@ -1,0 +1,127 @@
+{% load carts_tags %} 
+{% user_basket request=request as baskets %}
+{% user_basket_active request=request as basket_now %}
+
+<script>
+    $(document).ready(function() {
+        // Обработчик события изменения значения в input
+        $('.countt').on('change', function() {
+            // Получаем значение из input
+            var inputValue = $(this).val();
+            var id = $(this).attr('data-catr-id');
+
+            $.ajax({
+                type: 'POST',
+                url: '{% url "basket:edit_cart_quantity" %}', 
+                data: { 'value': inputValue, 'id':id, 'csrfmiddlewaretoken': '{{ csrf_token }}'},
+                success: function(response) {
+                    console.log('Успешно отправлено:', response);
+                    location.reload()
+                },
+                error: function(error) {
+                    console.error('Ошибка при отправке:', error);
+                    location.reload()
+                }
+            });
+        });
+        $('.delete').on('click', function() {
+            // Получаем значение из input
+            var parent = $(this).parent()
+
+            var id = $(this).attr('data-catr-id');
+
+            $.ajax({
+                type: 'POST',
+                url: '{% url "basket:cart_delete" %}', 
+                data: {'csrfmiddlewaretoken': '{{ csrf_token }}', 'id':id},
+                success: function(response) {
+                    console.log('Успешно отправлено:', response);
+                    parent.remove()
+                    location.reload()
+                },
+                error: function(error) {
+                    console.error('Ошибка при отправке:', error);
+                    location.reload()
+                }
+            });
+        });
+    });
+</script>
+
+<div class='w-auto h-auto flex justify-between mx-16'>
+    <div class=" h-full bg-gray-100 rounded-md">
+        <h2 class='w-auto h-8 text-center mt-2 text-lg px-4 py-0 rounded-lg mx-4 my-2 bg-green-100'>Корзина</h2>
+        <form method="POST" action="{% url "basket:checkout" %}" id="product_{{cart.product.id}}" class="w-auto h-auto text-center rounded-md m-4 mx-auto flex flex-col gap-2">
+            {% csrf_token %}
+            {% if basket_now.carts %}
+                {% for cart in basket_now.carts %}
+                    <div class='bg-white m-2 rounded-md flex flex-col'>
+                        <p>Название - {{cart.product.name}}</p>
+                        <div class='w-auto flex flex-row mx-4 h-auto px-2'>
+                            <label for="test-{{cart.id}}">Сколько:</label>
+                            <input class="countt w-auto mx-2" id="test-{{cart.id}}" type="number" min='1' data-catr-id={{cart.id}} value='{{cart.quantity}}'></input>
+                        </div>
+                        <p class="">За штуку - {{cart.product.price}}Р</p>
+                        <p class="">Итог - {{cart.products_price}}Р</p>
+                        <div data-catr-id={{cart.id}} class='delete w-24 h-8 mx-auto px-4 bg-red-300 hover:bg-red-400 rounded-md text-center m-4 hover:cursor-pointer'>Удалить</div>
+                    </div>
+                {% endfor %}
+                <p>Общая стоимость: {{basket_now.total_price}}Р</p>
+                <input type='submit' class="bg-green-100 hover:bg-green-200 m-2 rounded-md mx-auto p-2 text-center cursor-pointer align-middle" value="Оформить"></input>
+            {% else %}
+                <div class='bg-white m-2 rounded-md'>
+                    <p>Вы пока не добавили ни одного товара</p>
+                </div>
+            {% endif %}
+            
+        </form>
+    </div>
+    <div class="w-96 h-auto bg-gray-100 rounded-md flex flex-col gap-2">
+        <h2 class='w-auto h-8 text-center mt-2 text-lg px-4 py-0 rounded-lg mx-4 my-2 bg-green-100'>Оформленные заказы</h2>
+        {% for basket in baskets %}
+            {% if basket.archival %}
+                <div class="w-full h-auto text-center rounded-md flex flex-col border-2 border-black gap-1">
+                    {% csrf_token %}
+                    {% for cart in basket.carts %}
+                        <div class='bg-white mx-2 rounded-md'>
+                            <p>Название: {{cart.product.name}}</p>
+                            <p class="">Сколько: {{cart.quantity}}</p>
+                            <p class="">За штуку: {{cart.product.price}}Р</p>
+                            <p class="">Итог: {{cart.products_price}}Р</p>
+                        </div>
+                    {% endfor %}
+                    <p>Общая стоимость: {{basket.total_price}}Р</p>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+{% comment "" %}
+{% for basket in baskets %}
+    {% if not basket.archival %}
+        <div class='m-2 bg-white shadow-lg rounded-lg p-2 w-64 h-auto my-32'>
+            {% for cart in basket.carts %}
+                <div id="product_{{cart.product.id}}" class="w-auto h-auto bg-white shadow-md text-center rounded-md m-4 mx-auto flex flex-col">
+                    <p>Название - {{cart.product.name}}</p>
+                    <p>{{cart.product.description|truncatechars:64 }}</p>
+                    <p class="">Сколько - {{cart.quantity}}</p>
+                    <p class="">За штуку - {{cart.product.price}}Р</p>
+                    <p class="">Итог - {{cart.products_price}}Р</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class='m-2 bg-white shadow-lg rounded-lg p-2 w-64 h-auto my-32'>
+            {% for cart in basket.carts %}
+                <div id="product_{{cart.product.id}}" class="w-auto h-auto bg-white shadow-md text-center rounded-md m-4 mx-auto flex flex-col">
+                    <p>Название - {{cart.product.name}}</p>
+                    <p class="">Сколько - {{cart.quantity}}</p>
+                    <p class="">За штуку - {{cart.product.price}}Р</p>
+                    <p class="">Итог - {{cart.products_price}}Р</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endfor %}
+{% endcomment %}
